@@ -1,0 +1,42 @@
+{% extends 'admin_dashboard.html' %}
+
+{% block dashboard_content %}
+<h1>Add Points</h1>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Sl.No.</th>
+            <th>User</th>
+            <th>App</th>
+            <th>Description</th>
+            <th>Points</th>
+            <th>Status</th>
+            <th>Add Points</th>
+        </tr>
+    </thead>
+    <tbody id="add-points">
+        {% for item in data %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.user }}</td>
+            <td>{{ item.android_app }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.points }}</td>
+            <td><span class="status-dot"></span>{{ item.status }}</td>
+            <td>
+                <form method="post" action="{% url 'add-points' %}" style="display: flex; gap: 5px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ item.id }}">
+                    <input type="text" name="points" placeholder="Add Points" required
+                        style="width: 120px;margin-top: 20px;font-size: 14px;">
+                    <button type="submit" class="btn-submit">Submit</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Android App Downloader{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    {% block content %}
+    {% endblock %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const ADD_APP_URL = "{% url 'add-app-sv' %}";
+        const APP_LIST = "{% url 'app-list' %}";
+        const LOGIN_URL = "{% url 'login' %}";
+        const APP_APP = "{% url 'add-app' %}";
+        const TASK_SUBMIT = "{% url 'task-submit' %}";
+        const SIGNUP_URL = "{% url 'signup' %}";
+
+    </script>
+    <script src="{% static 'js/app_pjt.js' %}"></script>
+</body>
+</html>

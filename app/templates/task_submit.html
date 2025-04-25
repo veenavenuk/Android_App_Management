@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}body-tasksubmit{% endblock %}
+{% block content %}
+
+<div class="task-container">
+    <h2>Task Submit</h2>
+    <form method="post" class="submit-form" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Dropdown box -->
+        <select name="task_option" required>
+            <option value="">Select Task</option>
+            <option value="app_download">App Download</option>
+            <option value="app_open">App Open</option>
+            <option value="screenshot_submit">Screenshot Submit</option>
+        </select>
+
+        <!-- Drag and Drop Image Upload -->
+        <div class="upload-container" onclick="document.getElementById('fileInput').click();">
+            <p>Drag & Drop screenshot here or click to upload</p>
+            <input type="file" id="fileInput" name="screenshot" accept="image/*" style="display:none;" required>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <p class="register-text">
+        <b>Note:</b> Download the app, open it, and submit a screenshot of the opened app for verification.
+    </p>
+</div>
+
+{% endblock %}

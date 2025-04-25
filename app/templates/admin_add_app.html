@@ -1,0 +1,58 @@
+{% extends 'admin_dashboard.html' %}
+
+{% block dashboard_content %}
+<h1>Android App</h1>
+<a href="#taskModal">
+    <button class="btn-submit" onclick="clearModal()">Add Android App</button>
+</a>
+
+<h3>App Details</h3>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Sl.No.</th>
+            <th>App</th>
+            <th>Version</th>
+            <th>Category</th>
+            <th>Package</th>
+            <th>Email</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody id="admin-app-list">
+        <!-- <tr>
+                <td>1</td>
+                <td>Facebook</td>
+                <td>2.0</td>
+                <td>Social Media</td>
+                <td>com.example.com</td>
+                <td>fb@facebook.com</td>
+                <td>Social Media</td>
+            </tr> -->
+
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div id="taskModal" class="modal">
+    <div class="modal-content">
+        <a href="#" class="close">&times;</a>
+        <h2>Add Android App</h2>
+        <form method="post" class="signup-form">
+            {% csrf_token %}
+            <input type="text" name="app_name" placeholder="App Name" required><br>
+            <input type="text" name="package_name" placeholder="Package Name" required><br>
+            <!-- <input type="file" name="app_logo" accept="image/*"><br> -->
+            <input type="text" name="app_version" placeholder="App Version" required><br>
+            <input type="text" name="category" placeholder="Category" required><br>
+            <input type="email" name="contact_email" placeholder="Contact Email" required><br>
+            <textarea name="description" placeholder="Description" required></textarea><br>
+            <div class="modal-buttons">
+                <a href="#" class="cancel-btn">Cancel</a>
+                <button type="submit" class="submit-btn" onclick="addApp(event)">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
