@@ -157,7 +157,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-ALLOWED_HOSTS = ['android_app_downloader.onrender.com']  
+ALLOWED_HOSTS = ['android-app-management-pjt.onrender.com']  
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
