@@ -229,6 +229,18 @@ class AdminSignup(APIView):
         except Exception as e:
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
         
+class CreateGroupsAPIView(APIView):
+    def post(self, request):
+        groups = ['admin', 'user']
+        for group_name in groups:
+            group, created = Group.objects.get_or_create(name=group_name)
+            if created:
+                print(f'Group "{group_name}" created.')
+            else:
+                print(f'Group "{group_name}" already exists.')
+        
+        return Response({'message': 'Groups checked/created successfully'}, status=status.HTTP_201_CREATED)
+        
 
 
 

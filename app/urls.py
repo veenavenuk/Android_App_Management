@@ -17,6 +17,8 @@ urlpatterns = [
     path('user-view',UserDashboardView.as_view(),name='user-view'),
     path('task-submit',TaskSubmit.as_view(),name='task-submit'),
     path('admin-signup',AdminSignup.as_view(),name='admin-signup'),
+    path('create-groups/', CreateGroupsAPIView.as_view(), name='create-groups'),
+
 
 ]
 if settings.DEBUG:
