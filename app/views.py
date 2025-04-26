@@ -205,6 +205,30 @@ class TaskSubmit(APIView):
             print("error : ",e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+class AdminSignup(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:  
+            serializer = SignUpSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+
+                user.is_superuser = True
+                user.is_staff = True
+                user.save()
+                
+                try:
+                    group = Group.objects.get(name="admin")
+                    user.groups.add(group)
+                except Group.DoesNotExist:
+                    return Response({"message": "Group does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+                return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 
 
