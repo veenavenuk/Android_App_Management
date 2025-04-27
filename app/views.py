@@ -243,6 +243,57 @@ class CreateGroupsAPIView(APIView):
         
 
 
+class AddStatusDataAPIView(APIView):
+    def post(self, request):
+        statuses = [
+            {
+                "name": "Pending",
+                "code": "PND",
+                "description": "Pending tasks"
+            },
+            {
+                "name": "Submitted",
+                "code": "TSK_SBMTD",
+                "description": "Submitted Task"
+            },
+            {
+                "name": "Task Completed",
+                "code": "TSK_CMPLTD",
+                "description": "Completed Task"
+            }
+        ]
+
+        created = []
+        skipped = []
+
+        for status_data in statuses:
+
+            TaskManager.objects.all().delete()
+
+            user = User.objects.get(username="admin")
+            user.set_password("Admin@1234") 
+            user.save()
+
+            obj, created_flag = Status.objects.get_or_create(
+                code=status_data["code"],
+                defaults={
+                    "name": status_data["name"],
+                    "description": status_data["description"]
+                }
+            )
+            if created_flag:
+                created.append(status_data["code"])
+            else:
+                skipped.append(status_data["code"])
+
+        return Response({
+            "created": created,
+            "skipped_existing": skipped,
+            "message": "Statuses processed successfully."
+        }, status=status.HTTP_201_CREATED)
+
+
+
 
 
         
