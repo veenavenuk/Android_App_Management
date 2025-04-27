@@ -25,13 +25,15 @@
             <td>{{ item.points }}</td>
             <td><span class="status-dot"></span>{{ item.status }}</td>
             <td>
-                <form method="post" action="{% url 'add-points' %}" style="display: flex; gap: 5px;">
-                    {% csrf_token %}
-                    <input type="hidden" name="task_id" value="{{ item.id }}">
-                    <input type="text" name="points" placeholder="Add Points" required
-                        style="width: 120px;margin-top: 20px;font-size: 14px;">
-                    <button type="submit" class="btn-submit">Submit</button>
-                </form>
+                {% if item.status != "Task Completed" %}
+                    <form method="post" action="{% url 'add-points' %}" style="display: flex; gap: 5px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="task_id" value="{{ item.id }}">
+                        <input type="text" name="points" placeholder="Add Points" required
+                            style="width: 120px;margin-top: 20px;font-size: 14px;">
+                        <button type="submit" class="btn-submit">Submit</button>
+                    </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
