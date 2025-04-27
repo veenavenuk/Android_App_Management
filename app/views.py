@@ -20,18 +20,25 @@ from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 
 
+# View Login Page
 # @method_decorator(login_required(login_url='/'), name='dispatch')
 class home(TemplateView):
     template_name = "login.html"
 
+
+# Add App page - Admin 
 # @method_decorator(login_required(login_url='/'), name='dispatch')
 class addApp(TemplateView):
     template_name = "admin_add_app.html"
 
+
+# View submitted task
 # @method_decorator(login_required(login_url='/'), name='dispatch')
 class taskDtls(TemplateView):
     template_name = "admin_task_dtls_view.html"
-    
+
+
+# Login    
 class Login(APIView):
     permission_classes = [AllowAny]
 
@@ -67,11 +74,15 @@ class Login(APIView):
             print("Error: ", e)
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# Logout
 class Logout(View):
     def get(self, request):
         logout(request)  
         return redirect('home')
     
+
+# Signup - User
 class SignUp(APIView):
     permission_classes = [AllowAny]
 
@@ -91,6 +102,8 @@ class SignUp(APIView):
         except Exception as e:
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# Add new App - Admin
 class addAppSave(APIView):
     # permission_classes = [IsAuthenticated]
     # authentication_classes = [TokenAuthentication]
@@ -109,6 +122,8 @@ class addAppSave(APIView):
             print("ERROR :",e)
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# View all app details - Admin
 class AppListView(APIView):
     # permission_classes = [IsAuthenticated]
     # authentication_classes = [TokenAuthentication]
@@ -121,6 +136,8 @@ class AppListView(APIView):
         except Exception as e:
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# User Dashboard
 # @method_decorator(login_required(login_url='/'), name='dispatch')
 class UserDashboardView(View):
     def get(self, request):
@@ -140,6 +157,7 @@ class UserDashboardView(View):
             return render(request, "error_page.html", {"message": "An error occurred."})
         
 
+# Add points to submitted task - Admin
 @method_decorator(csrf_exempt, name='dispatch')
 # @method_decorator(login_required(login_url='/'), name='dispatch')
 class AddPointsView(View):
@@ -151,8 +169,8 @@ class AddPointsView(View):
             #     user_token = Token.objects.filter(key=decoded_token).first() 
             #     if user_token:
             tsk_dtls = TaskManager.objects.all().order_by('status_id','android_app__app_name')            
-            serializer = TaskManagerViewSerializer(tsk_dtls, many=True)
-            
+            serializer = TaskManagerViewSerializer(tsk_dtls, many=True, context={'request': request})
+            print(serializer.data)
             return render(request, "admin_add_points.html", {"data": serializer.data})
         
         except Exception as e:
@@ -175,7 +193,9 @@ class AddPointsView(View):
         except Exception as e:
             print("Error: ", e)
             return render(request, "error_page.html", {"message": "An error occurred."})
-        
+
+
+# Submit task - Admin
 class TaskSubmit(APIView):
     # permission_classes = [IsAuthenticated]
     # authentication_classes = [TokenAuthentication]
@@ -184,7 +204,7 @@ class TaskSubmit(APIView):
         try:
             usr = request.user
             app_id = request.data.get('app_id') 
-            # screenshot = request.FILES.get('screenshot')
+            screenshot = request.FILES.get('screenshot')
 
             android_app = AndroidApp.objects.get(id=app_id)
             status_data = Status.objects.filter(code="TSK_SBMTD").first()
@@ -195,7 +215,8 @@ class TaskSubmit(APIView):
                 status=status_data,
                 created_by=usr,
                 points=0,
-                is_active=True
+                is_active=True,
+                screenshot=screenshot 
             )
             tskMngr.save()
             
@@ -204,7 +225,9 @@ class TaskSubmit(APIView):
         except Exception as e:
             print("error : ",e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+ 
+ 
+# Admin - Signup       
 class AdminSignup(APIView):
     permission_classes = [AllowAny]
 
@@ -228,7 +251,8 @@ class AdminSignup(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
 class CreateGroupsAPIView(APIView):
     def post(self, request):
         groups = ['admin', 'user']
@@ -241,7 +265,6 @@ class CreateGroupsAPIView(APIView):
         
         return Response({'message': 'Groups checked/created successfully'}, status=status.HTTP_201_CREATED)
         
-
 
 class AddStatusDataAPIView(APIView):
     def post(self, request):

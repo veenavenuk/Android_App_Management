@@ -9,7 +9,7 @@
             <th>Sl.No.</th>
             <th>User</th>
             <th>App</th>
-            <th>Description</th>
+            <th>Screenshot</th>
             <th>Points</th>
             <th>Status</th>
             <th>Add Points</th>
@@ -21,7 +21,13 @@
             <td>{{ forloop.counter }}</td>
             <td>{{ item.user }}</td>
             <td>{{ item.android_app }}</td>
-            <td>{{ item.description }}</td>
+            <td>                
+                {% if item.screenshot %}
+                <img src="{{ item.screenshot }}" alt="Sorry! Something went wrong!" onclick="screenshot(this)" data-image="{{ item.screenshot }}" style="max-width: 140px; height: 200px;" />
+                {% else %}
+                    <p>No Image</p>
+                {% endif %}
+            </td>
             <td>{{ item.points }}</td>
             <td><span class="status-dot"></span>{{ item.status }}</td>
             <td>
@@ -36,6 +42,7 @@
                 {% endif %}
             </td>
         </tr>
+
         {% endfor %}
     </tbody>
 </table>

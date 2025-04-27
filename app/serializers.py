@@ -35,7 +35,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         user.set_password(password)  
         user.save()
         return user
-    
+
+
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -59,15 +60,18 @@ class UserLoginSerializer(serializers.Serializer):
         
         return data    
 
+
 class AddAppSerializer(serializers.ModelSerializer):
     class Meta:
         model = AndroidApp
         fields = ['app_name', 'package_name', 'app_version', 'category', 'contact_email', 'description']
 
+
 class AppListSerializer(serializers.ModelSerializer):
     class Meta:
         model = AndroidApp
         fields = '__all__'
+
 
 class userTaskMapperSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
@@ -94,7 +98,8 @@ class userTaskMapperSerializer(serializers.ModelSerializer):
         apps = AndroidApp.objects.all().order_by('app_name') 
         tsk_dtl=userTaskDetailsSerializer(apps,many=True,context={'user_id': obj.id})
         return tsk_dtl.data
-    
+
+
 class userTaskDetailsSerializer(serializers.ModelSerializer):
     points = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
@@ -120,18 +125,27 @@ class userTaskDetailsSerializer(serializers.ModelSerializer):
         else:
             TaskManager_obj="Pending"
         return TaskManager_obj
+ 
     
 class TaskManagerViewSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     android_app = serializers.CharField(source="android_app.app_name")
     status = serializers.CharField(source="status.name")
+    screenshot = serializers.SerializerMethodField()
 
     class Meta:
         model = TaskManager
-        fields = ['id','user', 'android_app', 'points', 'status', 'description']
+        fields = ['id','user', 'android_app', 'points', 'status', 'description','screenshot']
 
     def get_user (self,obj):
         return obj.user.first_name + " " + obj.user.last_name 
+    
+    def get_screenshot(self, obj):
+        if obj.screenshot:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.screenshot.url)
+        return None
     
     
   

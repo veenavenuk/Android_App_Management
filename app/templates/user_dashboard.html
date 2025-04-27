@@ -75,8 +75,8 @@
         <h2>Task Submit</h2>
         <form method="post" class="signup-form">
             {% csrf_token %}
-        <!-- Dropdown box -->
-        <select name="task_option" id="taskOption" required>
+            <!-- Dropdown box -->
+            <select name="task_option" id="taskOption" required>
                 <option value="" disabled selected hidden>Select App</option>
                 {% for app in data.app_details %}
                 {% if app.status == 'Pending' %}
@@ -84,12 +84,15 @@
                 {% endif %}
                 {% endfor %}
             </select>
-
-        <!-- Drag and Drop Image Upload -->
-        <div class="upload-container" onclick="document.getElementById('fileInput').click();">
-                <p>Drag & Drop your screenshot here or click to upload</p>
+        
+            <!-- Drag and Drop Image Upload -->
+            <div class="upload-container" id="uploadContainer" onclick="document.getElementById('fileInput').click();">
+                <p id="uploadText">Drag & Drop your screenshot here or click to upload</p>
+                <img id="previewImage" src="" alt="Preview"
+                    style="display:none; max-width:100%; max-height:100px; margin-top:10px;" />
                 <input type="file" id="fileInput" name="screenshot" accept="image/*" style="display:none;" required>
             </div>
+        
             <div class="modal-buttons">
                 <a href="#" class="cancel-btn">Cancel</a>
                 <button type="submit" class="submit-btn" onclick="taskSubmit(event)">Submit</button>

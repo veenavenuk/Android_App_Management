@@ -1,4 +1,6 @@
 
+
+// Error message  
 function showErrors(response) {
     const errors = response.responseJSON.errors;
     let message = '';
@@ -10,6 +12,8 @@ function showErrors(response) {
     return message;
 }
 
+
+// Add App - clear Modal
 function clearModal() {
     document.querySelector('input[name="app_name"]').value = '';
     document.querySelector('input[name="package_name"]').value = '';
@@ -20,6 +24,8 @@ function clearModal() {
 
 }
 
+
+// Login
 function login_handler(event) {
     event.preventDefault();
     const username = document.querySelector('input[name="username"]').value;
@@ -73,10 +79,11 @@ function login_handler(event) {
             window.location.href = redirectUrl;
 
             setCookie('auth_token', response.token);
-        }
-    
+        }    
 }
 
+
+// User Signup
 function signup(event) {
     event.preventDefault();
     const first_name = document.querySelector('input[name="first_name"]').value;
@@ -95,7 +102,7 @@ function signup(event) {
     signup_data['username'] = usrname;
     signup_data['contact_number'] = contact_number;
     signup_data['password'] = passwrd;
-    console.log(signup_data)
+    
     var res = jQuery.ajax
         ({
             headers: {
@@ -131,6 +138,7 @@ function signup(event) {
 }
 
 
+// Add App - By Admin
 function addApp(event) {
     event.preventDefault();
 
@@ -174,10 +182,11 @@ function addApp(event) {
             alert(response.message);
             const baseUrl = window.location.origin; 
             window.location.href = baseUrl + "/add-app";
-        }
-    
+        }    
 }
 
+
+// App List View - Admin login
 $(document).ready(function () {
 
     // $(document).on('click', '#add-app-link', function (event) {
@@ -211,7 +220,6 @@ $(document).ready(function () {
             return null; 
         }
     
-
         function renderList(response) {
             const dataList = response.data;
 
@@ -230,41 +238,102 @@ $(document).ready(function () {
             }
             // const baseUrl = window.location.origin; 
             // window.location.href = baseUrl + "/add-app";
-
         }
     // });
 
-
 });
 
+
+// Image Upload
+let selectedFile = null;
+
+const uploadContainer = document.getElementById('uploadContainer');
+const previewImage = document.getElementById('previewImage');
+const uploadText = document.getElementById('uploadText');
+
+// Drag and Drop events
+uploadContainer.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadContainer.classList.add('hover');
+});
+
+uploadContainer.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadContainer.classList.remove('hover');
+});
+
+uploadContainer.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadContainer.classList.remove('hover');
+    selectedFile = e.dataTransfer.files[0];
+    showPreview(selectedFile);
+});
+
+// Manual file select
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    selectedFile = event.target.files[0];
+    showPreview(selectedFile);
+});
+
+function showPreview(file) {
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            previewImage.style.display = 'block';
+            uploadText.style.display = 'none'; 
+        }
+        reader.readAsDataURL(file);
+    } else {
+        previewImage.src = '';
+        previewImage.style.display = 'none';
+        uploadText.style.display = 'block';
+    }
+}
+
+
+// Submit task - by user
 function taskSubmit(event) {
     event.preventDefault();
-
+    
     var selectedAppId = document.getElementById('taskOption').value;
-    const token = getCookie('auth_token');  
-
 
     if (!selectedAppId) {
         alert("Please select an App first.");
         return;
     }
 
-    var data = {
+    if (!selectedFile) {
+        alert('Please select an image first!');
+        return;
     }
-    data['app_id'] = selectedAppId;
+
+    if (!selectedFile.type.startsWith('image/')) {
+        alert('Only image files are allowed!');
+        return;
+    }
+
+    const token = getCookie('auth_token');  
+
+    const formData = new FormData();
+    formData.append('screenshot', selectedFile);
+    formData.append('app_id', selectedAppId);
 
     var res = jQuery.ajax
         ({
             headers: {
                 'Accept': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
                 'Authorization': `Token ${token}`,
             },
             type: "post",
             url: TASK_SUBMIT,
-            dataType: "json",
-            data: JSON.stringify(data),
+            data: formData,
+            processData: false,
+            contentType: false,
 
             success: renderlist,
 
@@ -287,9 +356,18 @@ function taskSubmit(event) {
             const token = getCookie('auth_token');
             const redirectUrl = baseUrl + "/user-view" + '?token=' + encodeURIComponent(token);
             window.location.href = redirectUrl;
-        }
-    
+        }    
 }
+
+
+// View screenshot
+function screenshot(imgElement) {
+    const imageUrl = imgElement.getAttribute('data-image');
+    window.location.href = imageUrl
+}
+
+
+
 
 
 
