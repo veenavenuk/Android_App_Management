@@ -31,9 +31,9 @@
                 <strong>Tasks completed:</strong> {{ data.tasks_completed }}
             </div>
 
-            <form method="get" action="{% url 'logout' %}">
+            <form method="post" action="">
                 {% csrf_token %}
-                <button type="submit" class="btn-submit">Logout</button>
+                <button type="submit" onclick="logoutUser(event)" class="btn-submit">Logout</button>
             </form>
         </div>
 

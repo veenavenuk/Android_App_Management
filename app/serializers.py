@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import *
 from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -59,6 +60,24 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Both username and password are required.")
         
         return data    
+
+
+class LogoutSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    def validate(self, attrs):
+        self.token = attrs.get("token")
+        if not self.token:
+            raise serializers.ValidationError("Token is required.")
+        return attrs
+
+    def save(self, **kwargs):
+        """Delete the token to log the user out."""
+        try:
+            token = Token.objects.get(key=self.token)
+            token.delete()  # Delete the token to log out
+        except Token.DoesNotExist:
+            raise serializers.ValidationError("Token does not exist or is already invalid.")
 
 
 class AddAppSerializer(serializers.ModelSerializer):

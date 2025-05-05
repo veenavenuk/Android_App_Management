@@ -20,44 +20,23 @@ from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 
 
-# View Login Page
-# @method_decorator(login_required(login_url='/'), name='dispatch')
-class home(TemplateView):
-    template_name = "login.html"
-
-
-# Add App page - Admin 
-# @method_decorator(login_required(login_url='/'), name='dispatch')
-class addApp(TemplateView):
-    template_name = "admin_add_app.html"
-
-
-# View submitted task
-# @method_decorator(login_required(login_url='/'), name='dispatch')
-class taskDtls(TemplateView):
-    template_name = "admin_task_dtls_view.html"
-
-
-# Login    
+# Login  
 class Login(APIView):
     permission_classes = [AllowAny]
 
-    def post(self,request):
-        try:    
+    def post(self, request):
+        try:   
             serializer = UserLoginSerializer(data=request.data)
 
             if serializer.is_valid():
                 user = serializer.validated_data['user']
                 token, created = Token.objects.get_or_create(user=user)
+
                 user.last_login = timezone.now()
                 user.save(update_fields=['last_login'])
 
-                groups = user.groups.values_list('name', flat=True) 
-                if 'admin' in groups:
-                    dashboard_url = '/add-points' 
-                else:
-                    dashboard_url = '/user-view' 
-                
+                dashboard_url = self.get_dashboard_url(user)
+
                 return Response({
                     "message": "Login successful!",
                     "dashboard_url": dashboard_url,
@@ -66,23 +45,37 @@ class Login(APIView):
                         "username": user.username,
                         "email": user.email,
                     },
-                    "token": token.key,}, status=status.HTTP_200_OK)
-                  
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    "token": token.key
+                }, status=status.HTTP_200_OK)
 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
         except Exception as e:
             print("Error: ", e)
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-# Logout
-class Logout(View):
-    def get(self, request):
-        logout(request)  
-        return redirect('home')
+    def get_dashboard_url(self, user):
+        if user.groups.filter(name='admin').exists():
+            return '/add-points'
+        return '/user-view'
     
 
-# Signup - User
+# Logout 
+class Logout(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
+
+# Signup - User 
 class SignUp(APIView):
     permission_classes = [AllowAny]
 
@@ -103,10 +96,10 @@ class SignUp(APIView):
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Add new App - Admin
+# Add new App - Admin 
 class addAppSave(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request):
         try:
@@ -123,10 +116,10 @@ class addAppSave(APIView):
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# View all app details - Admin
+# View all app details - Admin 
 class AppListView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def get(self, request):
         try:
@@ -137,40 +130,16 @@ class AppListView(APIView):
             return Response({"message": "Oops! Something went wrong!"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# User Dashboard
-# @method_decorator(login_required(login_url='/'), name='dispatch')
-class UserDashboardView(View):
-    def get(self, request):
-        try:
-            token = request.GET.get('token')
-            if token:
-                decoded_token = unquote(token)
-                user_token = Token.objects.filter(key=decoded_token).first() 
-                if user_token:
-                    user_data = user_token.user 
-                    serializer = userTaskMapperSerializer(user_data, many=False)
-                    
-                    return render(request, "user_dashboard.html", {"data": serializer.data})
- 
-        except Exception as e:
-            print("Error: ", e)
-            return render(request, "error_page.html", {"message": "An error occurred."})
-        
-
-# Add points to submitted task - Admin
-@method_decorator(csrf_exempt, name='dispatch')
-# @method_decorator(login_required(login_url='/'), name='dispatch')
+# Add points to submitted task - Admin 
 class AddPointsView(View):
     def get(self, request):
         try:
-            # token = request.GET.get('token')
-            # if token:
-            #     decoded_token = unquote(token)
-            #     user_token = Token.objects.filter(key=decoded_token).first() 
-            #     if user_token:
+            user = verify_token_from_cookie(request)
+            if not user:
+                return redirect('/')
+            
             tsk_dtls = TaskManager.objects.all().order_by('status_id','android_app__app_name')            
             serializer = TaskManagerViewSerializer(tsk_dtls, many=True, context={'request': request})
-            print(serializer.data)
             return render(request, "admin_add_points.html", {"data": serializer.data})
         
         except Exception as e:
@@ -195,10 +164,26 @@ class AddPointsView(View):
             return render(request, "error_page.html", {"message": "An error occurred."})
 
 
-# Submit task - Admin
+# User Dashboard View 
+class UserDashboardView(View):
+
+    def get(self, request):
+        try:
+            user = verify_token_from_cookie(request)
+            if not user:
+                return redirect('/')
+
+            serializer = userTaskMapperSerializer(user, many=False)
+            return render(request, "user_dashboard.html", {"data": serializer.data})
+
+        except Exception as e:
+            return render(request, "error_page.html", {"message": "An error occurred."})
+
+
+# Submit task - User 
 class TaskSubmit(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request):
         try:
@@ -209,15 +194,7 @@ class TaskSubmit(APIView):
             android_app = AndroidApp.objects.get(id=app_id)
             status_data = Status.objects.filter(code="TSK_SBMTD").first()
         
-            tskMngr=TaskManager(
-                user=usr,
-                android_app=android_app,
-                status=status_data,
-                created_by=usr,
-                points=0,
-                is_active=True,
-                screenshot=screenshot 
-            )
+            tskMngr=TaskManager(user=usr, android_app=android_app, status=status_data, created_by=usr, points=0, is_active=True, screenshot=screenshot)
             tskMngr.save()
             
             return Response({"message": "Sucessfully Added"}, status=status.HTTP_200_OK)
@@ -225,8 +202,40 @@ class TaskSubmit(APIView):
         except Exception as e:
             print("error : ",e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Verify - token 
+def verify_token_from_cookie(request):
+    '''
+    Retrieves and validates the token from cookies.
+    Returns the authenticated user if valid, otherwise None.'''
+    
+    token = request.COOKIES.get('auth_token')
+    if not token:
+        return None
+
+    decoded_token = unquote(token)
+    user_token = Token.objects.filter(key=decoded_token).first()
+
+    return user_token.user if user_token else None
+
+
+# View Login Page
+class home(TemplateView):
+    template_name = "login.html"
+
+
+# Add App page - Admin 
+class addApp(TemplateView):
+    template_name = "admin_add_app.html"
+
+
+# View submitted task
+class taskDtls(TemplateView):
+    template_name = "admin_task_dtls_view.html"
+
  
- 
+
 # Admin - Signup       
 class AdminSignup(APIView):
     permission_classes = [AllowAny]
@@ -290,12 +299,6 @@ class AddStatusDataAPIView(APIView):
         skipped = []
 
         for status_data in statuses:
-
-            TaskManager.objects.all().delete()
-
-            user = User.objects.get(username="admin")
-            user.set_password("Admin@1234") 
-            user.save()
 
             obj, created_flag = Status.objects.get_or_create(
                 code=status_data["code"],
