@@ -19,6 +19,8 @@ urlpatterns = [
     path('admin-signup',AdminSignup.as_view(),name='admin-signup'),
     path('create-groups/', CreateGroupsAPIView.as_view(), name='create-groups'),
     path('create-status', AddStatusDataAPIView.as_view(), name='create-status'),
+    path('delete-all-task', DeleteAllTask.as_view(), name='delete-all-task'),
+
 
 ]
 if settings.DEBUG:

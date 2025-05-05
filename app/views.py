@@ -319,6 +319,14 @@ class AddStatusDataAPIView(APIView):
         }, status=status.HTTP_201_CREATED)
 
 
+class DeleteAllTask(APIView):
+    def post(self, request):
+        TaskManager.objects.all().delete()
+        return Response({
+            "message": "Deleted successfully."
+        }, status=status.HTTP_201_CREATED)
+
+
 
 
 
